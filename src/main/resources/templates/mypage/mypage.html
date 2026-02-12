@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>마이페이지</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1>마이페이지</h1>
+
+<!-- 프로필 섹션 -->
+<div>
+    <h2>프로필</h2>
+    <!-- 현재 로그인한 사용자의 아이디 표시 -->
+    <p>아이디: <span th:text="${profile.username}"></span></p>
+    <!-- 현재 로그인한 사용자의 닉네임 표시 -->
+    <p>닉네임: <span th:text="${profile.nickname}"></span></p>
+    <!-- 현재 로그인한 사용자의 권한 표시 -->
+    <p>권한: <span th:text="${profile.role}"></span></p>
+</div>
+
+<!-- 내가 쓴 글 섹션 -->
+<div>
+    <h2>내가 쓴 글</h2>
+    <ul>
+        <!-- myPosts 리스트를 반복하여 각 게시글 정보를 출력 -->
+        <li th:each="post : ${myPosts}">
+            <!-- 게시글 제목을 링크로 표시, 클릭 시 상세 페이지로 이동 -->
+            <a th:href="@{|/posts/${post.id}|}" th:text="${post.title}"></a>
+            <!-- 좋아요/싫어요 카운트 표시 -->
+            (<span th:text="${post.likeCount}"></span> 👍,
+            <span th:text="${post.dislikeCount}"></span> 👎)
+        </li>
+    </ul>
+</div>
+
+<!-- 내가 쓴 댓글 섹션 -->
+<div>
+    <h2>내가 쓴 댓글</h2>
+    <ul>
+        <!-- myComments 리스트 반복 -->
+        <li th:each="comment : ${myComments}">
+            <!-- 댓글이 달린 게시글 링크 -->
+            <a th:href="@{|/posts/${comment.postId}|}">게시글</a>:
+            <!-- 댓글 내용 출력 -->
+            <span th:text="${comment.content}"></span>
+            <!-- 좋아요/싫어요 카운트 출력 -->
+            (<span th:text="${comment.likeCount}"></span> 👍,
+            <span th:text="${comment.dislikeCount}"></span> 👎)
+        </li>
+    </ul>
+</div>
+
+<!-- 홈으로 돌아가는 링크 -->
+<a th:href="@{/}">홈으로</a>
+</body>
+</html>

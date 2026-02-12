@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="page-wrap">
+        <section class="card form-card">
+            <h1>회원가입</h1>
+            <!-- 에러 메시지 출력 -->
+            <div class="error" th:if="${error}">
+                <p th:text="${error}"></p>
+            </div>
+            <!-- 회원가입 폼 -->
+            <form th:action="@{/user/signup}" method="post">
+                <div class="input-group">
+                    <label for="username">아이디</label>
+                    <input id="username" type="text" name="username" placeholder="아이디를 입력하세요"/>
+                </div>
+                <div class="input-group">
+                    <label for="password">비밀번호</label>
+                    <input id="password" type="password" name="password" placeholder="비밀번호를 입력하세요"/>
+                </div>
+                <div class="input-group">
+                    <label for="nickname">닉네임</label>
+                    <input id="nickname" type="text" name="nickname" placeholder="닉네임을 입력하세요"/>
+                </div>
+                <button class="btn btn-primary" type="submit">회원가입</button>
+            </form>
+
+            <p>이미 계정이 있나요? <a class="link" th:href="@{/user/login}">로그인</a></p>
+        </section>
+    </div>
+
+</body>
+</html>

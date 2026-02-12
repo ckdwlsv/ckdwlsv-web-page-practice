@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>메인페이지</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/main.js}" defer></script>
+</head>
+<body>
+    <div class="page-wrap">
+        <section class="card">
+            <h1> 홈페이지에 오신 것을 환영합니다.</h1>
+            <p class="subtitle">오늘의 생각과 일상을 게시판에 남기고, 다른 사람의 이야기도 함께 나눠보세요.</p>
+
+            <div th:if="${session.loginUser != null}">
+                <p th:text="'안녕하세요, ' + ${session.loginUser.nickname} + '님'"></p>
+                <div class="row">
+                    <a class="btn btn-primary" th:href="@{/mypage/mypage}">마이페이지</a>
+                    <a class="btn btn-ghost" th:href="@{/posts/list}">게시판 바로가기</a>
+                    <form class="inline" th:action="@{/user/logout}" method="post">
+                        <button class="btn btn-ghost" type="submit">로그아웃</button>
+                    </form>
+                </div>
+            </div>
+
+            <div th:unless="${session.loginUser != null}">
+                <div class="row">
+                    <a class="btn btn-primary" href="/user/login">로그인</a>
+                    <a class="btn btn-ghost" href="/user/signup">회원가입</a>
+                    <a class="btn btn-ghost" th:href="@{/posts/list}">게시판 둘러보기</a>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
