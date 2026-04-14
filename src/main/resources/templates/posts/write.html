@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>글 쓰기</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1>글 쓰기</h1>
+
+<!-- 🔹 글쓰기 폼
+     - th:action : 폼 제출 URL 지정
+     - method="post" : POST 방식
+     - enctype="multipart/form-data" : 파일 업로드 시 반드시 필요 -->
+<form th:action="@{/posts/write}" method="post" enctype="multipart/form-data">
+
+    <!-- 제목 입력 필드 -->
+    <label>제목 :
+        <input type="text" name="title" required>
+        <!-- required : 빈값 제출 방지 -->
+    </label>
+    <br><br>
+
+    <!-- 내용 입력 필드 -->
+    <label>내용 : <br>
+        <textarea name="content" rows="10" cols="50" required></textarea>
+        <!-- required : 내용 필수 입력 -->
+    </label>
+    <br><br>
+
+    <!-- 🔹 이미지 업로드
+         - name="files" : 서버에서 MultipartFile[]로 받을 수 있음
+         - multiple : 여러 파일 선택 가능 -->
+    <label>이미지 첨부 :
+        <input type="file" name="files" multiple>
+    </label>
+    <br><br>
+
+    <!-- 제출 버튼 -->
+    <button type="submit">작성 완료</button>
+</form>
+
+<!-- 🔹 게시글 목록으로 이동 -->
+<a th:href="@{/posts/list}">목록으로</a>
+</body>
+</html>

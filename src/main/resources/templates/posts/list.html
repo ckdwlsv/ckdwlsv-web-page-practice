@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="page-wrap">
+    <section class="card">
+        <h1>게시글 목록</h1>
+
+        <!-- 🔹 검색 폼 -->
+        <form th:action="@{/posts/list}" method="get">
+            <div class="row">
+                <input type="text" name="keyword" placeholder="검색어 입력" th:value="${keyword}">
+                <button class="btn btn-primary" type="submit">검색</button>
+            </div>
+        </form>
+
+        <!-- 🔹 게시글 목록 테이블 -->
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>번호</th>
+                        <th>제목</th>
+                        <th>작성자</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="post : ${posts}">
+                        <td th:text="${post.id}"></td>
+                        <td>
+                            <a class="link" th:href="@{/posts/{id}(id=${post.id})}" th:text="${post.title}"></a>
+                        </td>
+                        <td th:text="${post.authorName}"></td>
+                    </tr>
+                    <!-- 게시글이 없는 경우 -->
+                    <tr th:if="${posts.size() == 0}">
+                        <th colspan="3">게시글이 없습니다.</th>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+
+        <!-- 페이지 번호 표시 (현재는 단순 표시) -->
+            <div class="pagination">
+                <span th:if="${postsPage.hasPrevious()}">
+                    <a class="link" th:href="@{/posts/list(page=${postsPage.number - 1}, keyword=${keyword})}">&lt; 이전</a>
+                </span>
+                <span th:text="${postsPage.number + 1}"></span> /
+                <span th:text="${postsPage.totalPages}"></span>
+                <span th:if="${postsPage.hasNext()}">
+                    <a class="link" th:href="@{/posts/list(page=${postsPage.number + 1}, keyword=${keyword})}">다음 &gt;</a>
+                </span>
+            </div>
+
+            <!-- 🔹 로그인한 사용자만 글쓰기 버튼 표시 -->
+                <div class="row" th:if="${session.loginUser != null}">
+                    <a class="btn btn-primary" th:href="@{/posts/write}">글쓰기</a>
+                </div>
+            <!-- 🔹 메인 페이지로 이동 -->
+            <div class="row">
+                <a class="btn btn-ghost" th:href="@{/}">메인으로</a>
+            </div>
+        </section>
+</div>
+
+</body>
+</html>

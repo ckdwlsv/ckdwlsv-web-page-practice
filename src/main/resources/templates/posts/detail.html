@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>글 작성 상세</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1>게시글 상세</h1>
+
+<!-- 게시글 기본 정보 -->
+<p><strong>제목 : </strong><span th:text="${post.title}"></span></p>
+<p><strong>작성자 : </strong><span th:text="${post.authorName}"></span></p>
+<p><strong>내용 : </strong></p>
+<p th:text="${post.content}"></p>
+
+<!-- 게시글 이미지 출력 -->
+<div th:if="${post.images != null and !post.images.isEmpty()}">
+    <div th:each="image : ${post.images}">
+        <!-- 이미지 URL 동적 생성, 최대 너비 300px -->
+        <img th:src="@{/images/{id}(id=${image.id})}" alt="이미지" style="max-width:300px;">
+    </div>
+</div>
+
+<!-- 게시글 좋아요/싫어요 버튼 -->
+<div th:if="${session.loginUser != null}"
+     class="reaction" data-target="post" th:attr="data-id=${post.id}">
+    <button class="reactionBtn" data-type="LIKE"
+            th:text="${reactionSummary.myReaction == 'LIKE' ? '좋아요 취소' : '좋아요'}">좋아요</button>
+    <span id="postLikeCount" th:text="${reactionSummary.likeCount}">0</span>
+
+    <button class="reactionBtn" data-type="DISLIKE"
+            th:text="${reactionSummary.myReaction == 'DISLIKE' ? '싫어요 취소' : '싫어요'}">싫어요</button>
+    <span id="postDislikeCount" th:text="${reactionSummary.dislikeCount}">0</span>
+</div>
+
+<!-- 게시글 작성자만 수정/삭제 버튼 표시 -->
+<div th:if="${session.loginUser != null and session.loginUser.nickname == post.authorName}">
+    <a th:href="@{|/posts/${post.id}/edit|}">수정</a>
+    <form th:action="@{|/posts/${post.id}/delete|}" method="post" style="display:inline;">
+        <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?');">삭제</button>
+    </form>
+</div>
+
+<!-- 댓글 목록 -->
+<h2>댓글</h2>
+<div th:if="${#lists.isEmpty(comments)}">
+    <p>아직 댓글이 없습니다.</p>
+</div>
+<ul>
+    <li th:each="comment : ${comments}">
+        <!-- 댓글 작성자, 내용, 작성 시간 -->
+        <strong th:text="${comment.nickname}">작성자</strong> :
+        <span th:text="${comment.content}">댓글 내용</span>
+        <small th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}"></small>
+
+        <!-- 댓글 삭제 버튼: 작성자 본인 또는 ADMIN만 표시 -->
+        <form th:if="${session.loginUser != null and (session.loginUser.nickname == comment.authorName or session.loginUser.role == 'ADMIN')}"
+              th:action="@{|/posts/comments/${comment.id}/delete|}" method="post" style="display:inline;">
+            <button type="submit" onclick="return confirm('댓글을 삭제하시겠습니까?');">삭제</button>
+        </form>
+
+        <!-- 댓글 좋아요/싫어요 -->
+        <div th:if="${session.loginUser != null}"
+             class="reaction" data-target="comment" th:attr="data-id=${comment.id}">
+            <button class="reactionBtn" data-type="LIKE"
+                    th:text="${comment.myReaction == 'LIKE' ? '좋아요 취소' : '좋아요'}">좋아요</button>
+            <span class="commentLikeCount" th:text="${comment.likeCount}">0</span>
+
+            <button class="reactionBtn" data-type="DISLIKE"
+                    th:text="${comment.myReaction == 'DISLIKE' ? '싫어요 취소' : '싫어요'}">싫어요</button>
+            <span class="commentDislikeCount" th:text="${comment.dislikeCount}">0</span>
+        </div>
+    </li>
+</ul>
+
+<!-- 댓글 작성 폼: 로그인한 사용자만 가능 -->
+<div th:if="${session.loginUser != null}">
+    <h3>댓글 작성</h3>
+    <form th:action="@{|/posts/${post.id}|}" method="post">
+        <textarea name="content" rows="3" cols="50" placeholder="댓글을 입력하세요..." required></textarea>
+        <button type="submit">등록</button>
+    </form>
+</div>
+<div th:if="${session.loginUser == null}">
+    <p>댓글과 👍는<a th:href="@{/user/login}">로그인</a> 해주세요.</p>
+</div>
+
+<hr>
+<a th:href="@{/posts/list}">목록으로</a>
+
+<!-- 좋아요/싫어요 버튼 동작 JS -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function updateButtons(summary, parent) {
+      const likeBtn = parent.querySelector(".reactionBtn[data-type='LIKE']");
+      const dislikeBtn = parent.querySelector(".reactionBtn[data-type='DISLIKE']");
+
+      likeBtn.textContent = summary.myReaction === 'LIKE' ? '좋아요 취소' : '좋아요';
+      dislikeBtn.textContent = summary.myReaction === 'DISLIKE' ? '싫어요 취소' : '싫어요';
+
+      // 게시글과 댓글 구분하여 카운트 업데이트
+      if (parent.dataset.target === 'post') {
+        document.getElementById("postLikeCount").textContent = summary.likeCount;
+        document.getElementById("postDislikeCount").textContent = summary.dislikeCount;
+      } else {
+        parent.querySelector(".commentLikeCount").textContent = summary.likeCount;
+        parent.querySelector(".commentDislikeCount").textContent = summary.dislikeCount;
+      }
+    }
+
+    // 이벤트 위임 방식: 버튼 클릭 시 AJAX 요청 처리
+    document.addEventListener("click", function(e) {
+      const btn = e.target.closest(".reactionBtn");
+      if (!btn) return;
+
+      const parent = btn.closest("[data-target]");
+      const id = parent.dataset.id;
+      const target = parent.dataset.target;
+      const type = btn.dataset.type;
+
+      fetch(`/reactions/${target}s/${id}?type=${type}`, { method: 'POST' })
+        .then(res => {
+          if (res.status === 401) {
+            // 로그인 안 되어 있으면 안내 메시지만 띄움
+            alert("👍는 로그인 후 이용 가능합니다.");
+            return null;
+          }
+          return res.json();
+        })
+        .then(data => {
+          if (data) updateButtons(data, parent); // 버튼 텍스트와 카운트 업데이트
+        })
+        .catch(err => console.error(err));
+    });
+    /*]]>*/
+</script>
+</body>
+</html>
