@@ -1,19 +1,27 @@
 server:
   port: 8080
 
-spring :
+spring:
+  application:
+    name: demo
+
   datasource:
-    url: jdbc:mysql://localhost:3306/demo?serverTimezone=Asia/Seoul
-    username: root
-    password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/demo?serverTimezone=Asia/Seoul
+    username: ${DB_USER:root}
+    password: ${DB_PW:1111}
+
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+
     properties:
       hibernate:
+        show_sql: true
         format_sql: true
+
+    database-platform: org.hibernate.dialect.MySQLDialect
+
   thymeleaf:
     cache: false
 
@@ -24,4 +32,4 @@ spring :
 
 logging:
   level:
-    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
