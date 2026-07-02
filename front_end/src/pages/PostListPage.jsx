@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-function PostListPage({ posts, onNavigate }) {
+function PostListPage({ posts, pageInfo, onNavigate, onPageChange }) {
   const [keyword, setKeyword] = useState('')
 
   const filteredPosts = useMemo(() => {
@@ -60,9 +60,13 @@ function PostListPage({ posts, onNavigate }) {
         </div>
 
         <div className="pagination">
-          <span>&lt; 이전</span>
-          <span>1 / 1</span>
-          <span>다음 &gt;</span>
+          <button className="btn btn-ghost" type="button" disabled={!pageInfo.hasPrevious} onClick={() => onPageChange(pageInfo.page - 1)}>
+            &lt; 이전
+          </button>
+          <span>{(pageInfo.page || 0) + 1} / {Math.max(pageInfo.totalPages || 1, 1)}</span>
+          <button className="btn btn-ghost" type="button" disabled={!pageInfo.hasNext} onClick={() => onPageChange(pageInfo.page + 1)}>
+            다음 &gt;
+          </button>
         </div>
 
         <div className="row">

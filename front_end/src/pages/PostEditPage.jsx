@@ -1,14 +1,39 @@
 import { useState } from 'react'
 
-function PostEditPage({ post, onNavigate }) {
-  const [form, setForm] = useState({ title: post.title, content: post.content })
+function PostEditPage({ post, onNavigate, onUpdatePost }) {
+  const [form, setForm] = useState({ title: post?.title || '', content: post?.content || '' })
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setSubmitting(true)
+    const success = await onUpdatePost(post.id, {
+      title: form.title,
+      content: form.content,
+    })
+    setSubmitting(false)
+    if (!success) {
+      setForm({ title: post?.title || '', content: post?.content || '' })
+    }
+  }
+
+  if (!post) {
+    return (
+      <div className="page-wrap">
+        <section className="card">
+          <h1>글 수정</h1>
+          <p>게시글 정보를 불러오는 중입니다.</p>
+        </section>
+      </div>
+    )
+  }
 
   return (
     <div className="page-wrap">
       <section className="card">
         <h1>글 수정</h1>
 
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className="input-group">
             <label htmlFor="title">제목</label>
             <input
@@ -54,8 +79,8 @@ function PostEditPage({ post, onNavigate }) {
           </div>
 
           <div className="row">
-            <button className="btn btn-primary" type="submit">
-              수정 완료
+            <button className="btn btn-primary" type="submit" disabled={submitting}>
+              {submitting ? '수정 중...' : '수정 완료'}
             </button>
             <button className="btn btn-ghost" type="button" onClick={() => onNavigate('detail', post.id)}>
               취소

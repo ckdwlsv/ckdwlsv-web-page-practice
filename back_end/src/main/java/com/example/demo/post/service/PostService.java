@@ -10,6 +10,7 @@ import com.example.demo.reaction.reaction.Reaction;
 import com.example.demo.reaction.reaction.ReactionType;
 import com.example.demo.reaction.reactionRepository.ReactionRepository;
 import com.example.demo.user.domain.User;
+import com.example.demo.user.domain.UserRole;
 import com.example.demo.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -77,9 +78,12 @@ public class PostService {
      * @throws IllegalArgumentException 게시글이 존재하지 않으면 예외 발생
      */
     public PostResponseDto findById(long id) {
-        Post post = postRepository.findById(id)
+        return PostResponseDto.form(findEntityById(id));
+    }
+
+    public Post findEntityById(long id) {
+        return postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
-        return PostResponseDto.form(post);
     }
 
     /**
@@ -88,6 +92,7 @@ public class PostService {
      * @param user 작성자 정보
      * @param files 업로드 이미지 파일 목록
      */
+    @Transactional
     public void create(PostRequestDto dto, User user, List<MultipartFile> files) {
         // Post 엔티티 생성
         Post post = Post.builder()
@@ -106,10 +111,9 @@ public class PostService {
                         Image image = Image.builder()
                                 .contentType(file.getContentType()) // MIME 타입
                                 .data(file.getBytes())            // 실제 파일 데이터
-                                .post(post)                       // 연관된 게시글 설정
                                 .build();
                         // Post 객체에 이미지 추가 (cascade로 DB 저장 가능)
-                        post.getImages().add(image);
+                        post.addImage(image);
                     } catch (IOException e) {
                         // 파일 읽기 실패 시 런타임 예외 발생
                         e.printStackTrace();
@@ -150,17 +154,21 @@ public class PostService {
      * @param loginUserId 현재 로그인 사용자 ID (작성자 검증)
      */
     @Transactional
-    public void delete(Long id, Long loginUserId) {
+    public void delete(Long id, Long loginUserId, UserRole role) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
 
-        // 작성자 검증
-        if (!post.getAuthor().getId().equals(loginUserId)) {
-            throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
+        boolean isAuthor = post.getAuthor().getId().equals(loginUserId);
+        if (!isAuthor && role != UserRole.ADMIN) {
+            throw new IllegalArgumentException("삭제 권한이 없습니다.");
         }
 
-        // 게시글 삭제
         postRepository.delete(post);
+    }
+
+    @Transactional
+    public void delete(Long id, Long loginUserId) {
+        delete(id, loginUserId, UserRole.USER);
     }
 
     /**

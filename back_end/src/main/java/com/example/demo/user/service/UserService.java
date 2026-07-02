@@ -5,6 +5,7 @@ import com.example.demo.user.domain.UserRole;
 import com.example.demo.user.dto.UserLoginRequestDto;
 import com.example.demo.user.dto.UserResponseDto;
 import com.example.demo.user.dto.UserSignupRequestDto;
+import com.example.demo.user.dto.UserUpdateRequestDto;
 import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -60,11 +61,13 @@ public class UserService {
         String encodedPw = passwordEncoder.encode(dto.getPassword());
 
         // 3. User 객체 생성 및 기본 역할 설정
+        UserRole role = Boolean.TRUE.equals(dto.getAdmin()) ? UserRole.ADMIN : UserRole.USER;
+
         User user = User.builder()
                 .username(dto.getUsername())
                 .password(encodedPw)
                 .nickname(dto.getNickname())
-                .role(UserRole.USER)
+                .role(role)
                 .build();
 
         // 4. DB에 저장
@@ -93,6 +96,34 @@ public class UserService {
         }
 
         // 3. DTO 변환 후 반환
+        return UserResponseDto.from(user);
+    }
+
+    public UserResponseDto findByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        return UserResponseDto.from(user);
+    }
+
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        userRepository.delete(user);
+    }
+
+    public UserResponseDto updateProfile(Long userId, UserUpdateRequestDto dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        if (dto.getNickname() != null && !dto.getNickname().isBlank()) {
+            user.setNickname(dto.getNickname());
+        }
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        userRepository.save(user);
         return UserResponseDto.from(user);
     }
 }

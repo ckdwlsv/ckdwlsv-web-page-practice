@@ -13,6 +13,9 @@ public class CommentResponseDto {
     // 댓글 ID
     private Long id;
 
+    // 작성자 ID
+    private Long userId;
+
     // 댓글 내용
     private String content;
 
@@ -58,6 +61,7 @@ public class CommentResponseDto {
     // Comment 엔티티를 DTO로 변환하는 생성자
     public CommentResponseDto(Comment comment) {
         this.id = comment.getId();
+        this.userId = comment.getUser().getId();
         this.content = comment.getContent();
         this.nickname = comment.getUser().getNickname(); // 작성자 닉네임
         this.authorName = comment.getUser().getUsername(); // 작성자 이름/아이디

@@ -1,9 +1,34 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
-function PostDetailPage({ post, comments, currentUser, onNavigate }) {
-  const canEditPost = currentUser && currentUser.nickname === post.authorName
+function PostDetailPage({ post, comments, currentUser, postReaction, onNavigate, onCreateComment, onDeleteComment, onToggleReaction, onToggleCommentReaction, onDeletePost }) {
+  const [commentText, setCommentText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const commentList = useMemo(() => comments, [comments])
+  const canEditPost = currentUser && post && (currentUser.role === 'ADMIN' || currentUser.nickname === post.authorName)
+  const commentList = useMemo(() => comments || [], [comments])
+
+  const handleSubmitComment = async (event) => {
+    event.preventDefault()
+    if (!commentText.trim()) return
+
+    setSubmitting(true)
+    const success = await onCreateComment(commentText.trim())
+    setSubmitting(false)
+    if (success) {
+      setCommentText('')
+    }
+  }
+
+  if (!post) {
+    return (
+      <div className="page-wrap">
+        <section className="card">
+          <h1>게시글 상세</h1>
+          <p>게시글 정보를 불러오는 중입니다.</p>
+        </section>
+      </div>
+    )
+  }
 
   return (
     <div className="page-wrap">
@@ -24,10 +49,14 @@ function PostDetailPage({ post, comments, currentUser, onNavigate }) {
         ) : null}
 
         <div className="reaction-row">
-          <button className="btn btn-ghost" type="button">좋아요</button>
-          <span>{post.likeCount}</span>
-          <button className="btn btn-ghost" type="button">싫어요</button>
-          <span>{post.dislikeCount}</span>
+          <button className="btn btn-ghost" type="button" onClick={() => currentUser && onToggleReaction('LIKE')}>
+            좋아요
+          </button>
+          <span>{postReaction?.likeCount ?? 0}</span>
+          <button className="btn btn-ghost" type="button" onClick={() => currentUser && onToggleReaction('DISLIKE')}>
+            싫어요
+          </button>
+          <span>{postReaction?.dislikeCount ?? 0}</span>
         </div>
 
         {canEditPost ? (
@@ -35,7 +64,7 @@ function PostDetailPage({ post, comments, currentUser, onNavigate }) {
             <button className="btn btn-primary" type="button" onClick={() => onNavigate('edit', post.id)}>
               수정
             </button>
-            <button className="btn btn-ghost" type="button">
+            <button className="btn btn-ghost" type="button" onClick={() => onDeletePost(post.id)}>
               삭제
             </button>
           </div>
@@ -50,8 +79,16 @@ function PostDetailPage({ post, comments, currentUser, onNavigate }) {
               <li key={comment.id}>
                 <strong>{comment.nickname}</strong> : {comment.content}
                 <small>{comment.createdAt}</small>
-                {currentUser && (currentUser.nickname === comment.authorName || currentUser.role === 'ADMIN') ? (
-                  <button className="btn btn-ghost" type="button">
+                <div className="row">
+                  <button className="btn btn-ghost" type="button" onClick={() => currentUser && onToggleCommentReaction(comment.id, 'LIKE')}>
+                    👍 {comment.likeCount ?? 0}
+                  </button>
+                  <button className="btn btn-ghost" type="button" onClick={() => currentUser && onToggleCommentReaction(comment.id, 'DISLIKE')}>
+                    👎 {comment.dislikeCount ?? 0}
+                  </button>
+                </div>
+                {currentUser && (currentUser.id === comment.userId || currentUser.role === 'ADMIN') ? (
+                  <button className="btn btn-ghost" type="button" onClick={() => onDeleteComment(comment.id)}>
                     삭제
                   </button>
                 ) : null}
@@ -61,15 +98,15 @@ function PostDetailPage({ post, comments, currentUser, onNavigate }) {
         )}
 
         {currentUser ? (
-          <div className="section-block">
+          <form onSubmit={handleSubmitComment} className="section-block">
             <h3>댓글 작성</h3>
-            <textarea rows="3" placeholder="댓글을 입력하세요..." />
+            <textarea rows="3" value={commentText} onChange={(event) => setCommentText(event.target.value)} placeholder="댓글을 입력하세요..." />
             <div className="row">
-              <button className="btn btn-primary" type="button">
-                등록
+              <button className="btn btn-primary" type="submit" disabled={submitting}>
+                {submitting ? '등록 중...' : '등록'}
               </button>
             </div>
-          </div>
+          </form>
         ) : (
           <p>댓글과 👍는 로그인해 주세요.</p>
         )}

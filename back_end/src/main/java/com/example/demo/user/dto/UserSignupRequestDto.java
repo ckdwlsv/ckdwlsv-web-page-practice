@@ -22,4 +22,7 @@ public class UserSignupRequestDto {
 
     /** 회원가입 시 입력받는 사용자 닉네임 */
     private String nickname;
+
+    /** 관리자 권한 부여 여부 */
+    private Boolean admin;
 }

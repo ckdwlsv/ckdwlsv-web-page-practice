@@ -3,6 +3,7 @@ package com.example.demo.image.image;
 
 // 필요한 클래스 import
 import com.example.demo.post.post.Post; // 이미지가 연결된 게시글 엔티티
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;           // JPA 어노테이션
 import lombok.*;                        // Lombok 어노테이션
 

@@ -11,10 +11,11 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 // Lombok 어노테이션들
-@Getter //모든 필드에 대한 gettter 생성
-@NoArgsConstructor(access = AccessLevel.PROTECTED) //기본 생성자를 protected(보호된) 접근 제한자로 생성, 외부 직접 호출 제한
-@AllArgsConstructor //모든 필드를 매개변수로 받는 생성자 생성
-@Builder //빌더 패턴을 이용해 객체 생성 가능
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 
 public class User {
 
@@ -35,7 +36,7 @@ public class User {
     @Column(nullable = false, length = 20)//Not Null
     private String nickname;
 
-    @Enumerated()//Enum을 문자열로 DB에 저장
+    @Enumerated(EnumType.ORDINAL)//DB에는 0(USER), 1(ADMIN) 형태로 저장
     @Column(nullable = false)
     private UserRole role; //사용자 권한(ROLE,ADMIN)
 
@@ -46,6 +47,7 @@ public class User {
      * Cascade.ALL: User가 변경되면 관련 Post도 함께 변경
      * orphanRemoval=true: User에서 제거된 Post는 DB에서 삭제
      */
+    @Builder.Default
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
 

@@ -7,6 +7,7 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 게시글 응답 정보를 담는 DTO 클래스
@@ -43,9 +44,9 @@ public class PostResponseDto {
             this.images.addAll(post.getImages());
 
             // 이미지 ID 리스트 생성 (템플릿에서 imageIds로도 사용 가능)
-            for (Image img : post.getImages()) {
-                this.imageIds.add(img.getId());
-            }
+            this.imageIds = post.getImages().stream()
+                    .map(Image::getId)
+                    .collect(Collectors.toList());
         }
     }
 
